@@ -1,40 +1,72 @@
-<!doctype html>
-<html>
-<head>
-  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
-  <script src="https://skyway.io/dist/0.3/peer.min.js"></script>
-  <script src="https://skyway.io/dist/multiparty.min.js"></script>
-  
-  <style> video { width:200px; } </style>
- 
-</head>
-<body>
- 
-  <div id="streams"></div>
- 
-<script>
- 
-  // MultiParty インスタンスを生成
-  multiparty = new MultiParty( {
-    "key": "3c132ff4-526b-4bf5-a24d-ae7bd4e70b26"  /* SkyWay keyを指定 */
-  });
- 
-  multiparty.on('my_ms', function(video) {
-    // 自分のvideoを表示
-    var vNode = MultiParty.util.createVideoNode(video);
-    $(vNode).appendTo("#streams");
-  }).on('peer_ms', function(video) {
-    // peerのvideoを表示
-    var vNode = MultiParty.util.createVideoNode(video);
-    $(vNode).appendTo("#streams");
-  }).on('ms_close', function(peer_id) {
-    // peerが切れたら、対象のvideoノードを削除する
-    $("#"+peer_id).remove();
-  });
- 
-  // サーバとpeerに接続
-  multiparty.start()
- 
-</script>
-</body>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SkyWay - Room example</title>
+    <link rel="stylesheet" href="../_shared/style.css">
+  </head>
+  <body>
+    <div class="container">
+      <h1 class="heading">Room example</h1>
+      <p class="note">
+        Change Room mode (before join in a room):
+        <a href="#">mesh</a> / <a href="#sfu">sfu</a>
+      </p>
+      <div class="room">
+        <div>
+          <video id="js-local-stream"></video>
+          <input type="text" placeholder="Room Name" id="js-room-id">
+          <button id="js-join-trigger">Join</button>
+          <button id="js-leave-trigger">Leave</button>
+        </div>
+
+        <div class="remote-streams" id="js-remote-streams"></div>
+
+        <div>
+          <pre class="messages" id="js-messages"></pre>
+          <input type="text" id="js-local-text">
+          <button id="js-send-trigger">Send</button>
+        </div>
+      </div>
+    </div>
+    <script src="//cdn.webrtc.ecl.ntt.com/skyway-latest.js"></script>
+    <script src="../_shared/key.js"></script>
+    <script src="./script.js"></script>
+    <script>
+    let localStream = null;
+    navigator.mediaDevices.getUserMedia({video: true, audio: true})
+    .then(function (stream) {
+        // Success
+        $('#my-video').get(0).srcObject = stream;
+        localStream = stream;
+    }).catch(function (error) {
+        // Error
+        console.error('mediaDevice.getUserMedia() error:', error);
+        return;
+    });
+    
+let peer = null;
+let existingCall = null;
+
+navigator.mediaDevices.getUserMedia({video: true, audio: true})
+    // 省略
+
+
+peer = new Peer({
+    key: '3c132ff4-526b-4bf5-a24d-ae7bd4e70b26',
+    debug: 3
+});
+peer.on('open', function(){
+    $('#my-id').text(peer.id);
+});
+peer.on('error', function(err){
+    alert(err.message);
+});
+peer.on('close', function(){
+});
+peer.on('disconnected', function(){
+});
+    </script>
+  </body>
 </html>
