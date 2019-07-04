@@ -1,144 +1,80 @@
+
+2
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+17
+18
+19
+20
+21
+22
+23
+24
+25
+26
+27
+28
+29
+30
+31
+32
+33
+34
+35
+36
+37
+38
+39
+40
+<!doctype html>
 <html>
-    <head>
-        <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
-        <script src="https://skyway.io/dist/0.3/peer.min.js"></script>
-        <script src="https://skyway.io/dist/multiparty.min.js"></script>
-        <script src="https://skyway.io/dist/screenshare.min.js"></script>
-        <style>
-            body {
-                margin: 0;
-            }
-            #message {
-                width: 190px;
-                margin: 10px;
-            }
-            #streams {
-                position: absolute;
-                top: 10px;
-                margin-left: 200px;
-            }
-            .video{
-                margin: 0px 0px 0px 5px;
-                width: 300px;
-                border: 1px solid #000000;
-                border-radius: 10px;
-            }
-            #streams .my-video {
-                -webkit-transform: scaleX(-1);
-                -o-transform: scaleX(-1);
-                -moz-transform: scaleX(-1);
-                transform: scaleX(-1);
-            }
-        </style>
-    </head>
-    <body>
-        <div id="message">
-            <form>
-                <input type="text"><button type="submit">send</button>
-            </form>
-            <p class="receive">
-            </p>
-        </div>
-        <div id="streams">
-            <div>
-                <!-- <button id="start-screen" data-muted="false">start screen</button> -->
-                <button id="video-mute" data-muted="false">video mute</button>
-                <button id="audio-mute" data-muted="false">audio mute</button>
-            </div>
-        </div>
-        <script>
-            multiparty = new MultiParty( {
-                "key": "3c132ff4-526b-4bf5-a24d-ae7bd4e70b26",
-                "reliable": true,
-                "debug": 3
-            });
-
-            screen = new SkyWay.ScreenShare({debug: true});
-
-            multiparty.on('my_ms', function(video) {
-                var vNode = MultiParty.util.createVideoNode(video);
-                vNode.setAttribute("class", "video my-video");
-                vNode.volume = 0;
-                $(vNode).appendTo("#streams");
-            }).on('peer_ms', function(video) {
-                console.log("video received!!")
-                console.log(video);
-                var vNode = MultiParty.util.createVideoNode(video);
-                vNode.setAttribute("class", "video peer-video");
-                $(vNode).appendTo("#streams");
-                console.log($("#streams"))
-            }).on('ms_close', function(peer_id) {
-                $("#"+peer_id).remove();
-            })
-
-            multiparty.on('message', function(msg) {
-                $("p.receive").append(msg.data + "<br>");
-            });
-
-            multiparty.on('error', function(err) {
-                alert(err);
-            });
-
-            multiparty.start();
-
-            $("#message form").on("submit", function(e) {
-                e.preventDefault();
-
-                var $text = $(this).find("input[type=text]");
-                var data = $text.val();
-
-                if (data.length > 0) {
-                    data = data.replace(/</g, "&lt;").replace(/>/g, "&gt;");
-                    $("p.receive").append(data + "<br>");
-                    multiparty.send(data);
-                    $text.val("");
-                }
-            });
-
-            $('#start-screen').click(function () {
-                if (screen.isEnabledExtension()) {
-                    screen.startScreenShare({
-                        Width: $('#Width').val(),
-                        Height: $('#Height').val(),
-                        FrameRate: $('#FrameRate').val()
-                    },
-                    function (stream) {
-                        $('#my-video').prop('src', URL.createObjectURL(stream));
-
-                        if(existingCall != null){
-                            var _peerid = existingCall.peer;
-                            existingCall.close();
-                            var call = peer.call(_peerid, stream);
-                            step3(call);
-                        }
-
-                        localStream = stream;
-
-                    },function(error){
-                        console.log(error);
-                    },function() {
-                        alert('ScreenShareを終了しました');
-                    });
-                } else {
-                    alert('ExtensionまたはAddonをインストールして下さい');
-                }
-            });
-
-            $('#stop-screen').click(function() {
-                localStream.stop();
-            });
-
-            $("#video-mute").on("click", function(ev) {
-                var mute = !$(this).data("muted");
-                multiparty.mute({video: mute});
-                $(this).text("video " + (mute ? "unmute" : "mute")).data("muted", mute);
-            });
-
-            $("#audio-mute").on("click", function(ev) {
-                var mute = !$(this).data("muted");
-                multiparty.mute({audio: mute});
-                $(this).text("audio " + (mute ? "unmute" : "mute")).data("muted", mute);
-            });
-        </script>
-    </body>
+<head>
+  <script src="https://code.jquery.com/jquery-1.11.3.min.js"></script>
+  <script src="https://skyway.io/dist/0.3/peer.min.js"></script>
+  <script src="https://skyway.io/dist/multiparty.min.js"></script>
+  
+  <style> video { width:200px; } </style>
+ 
+</head>
+<body>
+ 
+  <div id="streams"></div>
+ 
+<script>
+ 
+  // MultiParty インスタンスを生成
+  multiparty = new MultiParty( {
+    "key": "3c132ff4-526b-4bf5-a24d-ae7bd4e70b26"  /* SkyWay keyを指定 */
+  });
+ 
+  multiparty.on('my_ms', function(video) {
+    // 自分のvideoを表示
+    var vNode = MultiParty.util.createVideoNode(video);
+    $(vNode).appendTo("#streams");
+  }).on('peer_ms', function(video) {
+    // peerのvideoを表示
+    var vNode = MultiParty.util.createVideoNode(video);
+    $(vNode).appendTo("#streams");
+  }).on('ms_close', function(peer_id) {
+    // peerが切れたら、対象のvideoノードを削除する
+    $("#"+peer_id).remove();
+  });
+ 
+  // サーバとpeerに接続
+  multiparty.start()
+ 
+</script>
+</body>
 </html>
